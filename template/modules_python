@@ -1,0 +1,12 @@
+# -*- text -*-
+#
+#  $Id$
+
+#  Persistent, embedded Python interpreter.
+#
+python {
+    mod_instantiate = "freeradius-pysaml2"
+    func_instantiate = "instantiate"
+    mod_post_auth= "freeradius-pysaml2"
+    func_post_auth= "post_auth"
+}
