@@ -5,6 +5,7 @@
 # The freeradius extension using ECP
 #
 __author__ = 'rolandh'
+__version__ = "0.0.5a"
 
 import radiusd
 import saml2
@@ -19,11 +20,11 @@ from saml2.response import authn_response
 from saml2.ecp_client import Client
 
 # Where's the configuration file is
-#CONFIG_DIR = "/usr/local/etc/moonshot"
-CONFIG_DIR = "../etc"
+CONFIG_DIR = "/usr/local/etc/moonshot"
+#CONFIG_DIR = "../etc"
 sys.path.insert(0, CONFIG_DIR)
 
-import ecp_config
+import config
 
 # Globals
 CLIENT = None
@@ -68,7 +69,7 @@ def instantiate(p):
     # Use IdP info retrieved from the SP when metadata is missing
 
     try:
-        CLIENT = Saml2Client(ecp_config.DEBUG, config_file=ecp_config.CONFIG)
+        CLIENT = Saml2Client(config.DEBUG, config_file=config.CONFIG)
 
     except Exception, e:
         # Report the error and return -1 for failure.
@@ -77,7 +78,8 @@ def instantiate(p):
         return -1
 
     try:
-        ECP = Client("", "", None, metadata_file=ecp_config.METADATA_FILE)
+        ECP = Client("", config.PASSWD, None,
+                     metadata_file=config.METADATA_FILE)
     except Exception, err:
         log(radiusd.L_ERR, str(err))
         return -1
@@ -107,8 +109,13 @@ def authentication_request(cls, ecp, idp_entity_id, destination,
         log = cls.logger
 
     session_id = sid()
-    acsu = cls.config.endpoint('assertion_consumer_service',
-                               saml2.BINDING_PAOS)[0]
+    acsus = cls.config.endpoint('assertion_consumer_service',
+                                saml2.BINDING_PAOS)
+    if not acsus:
+        if log:
+            log.error("Couldn't find own PAOS endpoint for")
+    acsu = acsus[0]
+
     spentityid = cls.config.entityid
 
     # create the request
@@ -187,12 +194,12 @@ def post_auth(authData):
 
     global CLIENT
     global HTTP
+    global ECP
 
     # Extract the data we need.
     userName = None
     serviceName = ""
     hostName = ""
-    #userPasswd = None
 
     for t in authData:
         if t[0] == 'User-Name':
@@ -207,17 +214,28 @@ def post_auth(authData):
 
 
     # Find the endpoint to use
-    attribute_service = CLIENT.config.attribute_services(ecp_config.IDP_ENTITYID)
-    location = attribute_service[0].location
+    sso_service = CLIENT.config.single_sign_on_services(config.IDP_ENTITYID,
+                                                        saml2.BINDING_PAOS)
+    if not sso_service:
+        log(radiusd.L_DBG,
+            "Couldn't find an single sign on endpoint for: %s" % (
+                config.IDP_ENTITYID,))
+        return radiusd.RLM_MODULE_FAIL
+
+    location = sso_service[0]
 
     log(radiusd.L_DBG, "location: %s" % location)
 
+    ECP.http.clear_credentials()
+    ECP.user = userName
+    log(radiusd.L_DBG, "Login using user:%s password:'%s'" % (ECP.user,
+                                                             ECP.passwd))
 
     _assertion = authentication_request(CLIENT, ECP,
-                                        ecp_config.IDP_ENTITYID,
+                                        config.IDP_ENTITYID,
                                         location,
                                         log=LOG(),
-                                        sign=ecp_config.SIGN)
+                                        sign=config.SIGN)
 
     if _assertion is None:
         return radiusd.RLM_MODULE_FAIL
@@ -228,12 +246,6 @@ def post_auth(authData):
 
     # remove the subject confirmation if there is one
     _assertion.subject.subject_confirmation = []
-    # Only allow attributes that the service should have
-    try:
-        _assertion = only_allowed_attributes(CLIENT, _assertion,
-                                             ecp_config.ATTRIBUTE_FILTER[_srv])
-    except KeyError:
-        pass
 
     log(radiusd.L_DBG, "Assertion: %s" % _assertion)
 

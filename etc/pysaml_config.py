@@ -4,7 +4,7 @@ from saml2 import BINDING_PAOS
 # *** Change this line ***
 BASE= "http://localhost:8088/"
 
-# Don't change this line
+# Don't change this line unless you know exactly what you are doing
 BASEDIR = "/usr/local/etc/moonshot/"
 
 CONFIG = {

@@ -5,8 +5,8 @@
 #  Persistent, embedded Python interpreter.
 #
 python {
-    mod_instantiate = "freeradius_ecp"
+    mod_instantiate = "freeradius_pysaml2"
     func_instantiate = "instantiate"
-    mod_post_auth= "freeradius_ecp"
+    mod_post_auth= "freeradius_pysaml2"
     func_post_auth= "post_auth"
 }
