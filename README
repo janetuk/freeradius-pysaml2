@@ -6,6 +6,17 @@ Identity Provider (IdP).
 There are some things you have to do disregarding how you want the SP to
 talk to the IdP/AA. So I take those first.
 
+Dependency
+----------
+
+This package is dependent on pySAML2.
+You should get PySAML2 from Launchpad, the version that is at PyPI is not
+enough up-to-date.
+
+bzr co bzr+ssh://bazaar.launchpad.net/%2Bbranch/pysaml2/
+
+should get you the latest version.
+
 Basic Installing
 ----------
 

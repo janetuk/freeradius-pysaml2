@@ -39,6 +39,8 @@ setup(# Distribution meta-data
                 ('/usr/local/etc/moonshot/pki',
                             ['pki/ssl.cert', 'pki/ssl.key'])],
     zip_safe=False,
+    package_data = {"etc":["*.py", "*.xml"]},
+    include_package_data = True
 #    install_requires=[
 #        'pysaml2'
 #    ]
