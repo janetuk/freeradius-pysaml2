@@ -1,7 +1,7 @@
 # You shouldn't change this line unless you know what you are doing
 CONFIG = 'pysaml_config'                # PySAML2 Configuration file name
 
-METADATA_FILE="metadata.xml"
+METADATA_FILE="/usr/local/etc/moonshot/metadata.xml"
 
 DEBUG=0
 
@@ -14,4 +14,10 @@ IDP_ENTITYID = "http://example.com/idp"
 
 # The password that should be used when authenticating with the IdP
 # This password will be used disregarding which user it is.
-PASSWD = "foobar"
+
+PASSWD = ""
+
+# If you don't want to used Basic-Auth you can place the username in a
+# header. This defines the header name
+
+USERNAME_HEADER = "X-Moonshot-Username"

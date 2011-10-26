@@ -78,7 +78,12 @@ def instantiate(p):
         return -1
 
     try:
-        ECP = Client("", config.PASSWD, None,
+        try:
+            _passwd = config.PASSWD
+        except AttributeError:
+            _passwd = ""
+            
+        ECP = Client("", _passwd, None,
                      metadata_file=config.METADATA_FILE)
     except Exception, err:
         log(radiusd.L_ERR, str(err))
@@ -111,9 +116,9 @@ def authentication_request(cls, ecp, idp_entity_id, destination,
     session_id = sid()
     acsus = cls.config.endpoint('assertion_consumer_service',
                                 saml2.BINDING_PAOS)
-    if not acsus:
-        if log:
-            log.error("Couldn't find own PAOS endpoint for")
+    if not acsus and log:
+        log.error("Couldn't find own PAOS endpoint")
+        
     acsu = acsus[0]
 
     spentityid = cls.config.entityid
@@ -130,8 +135,15 @@ def authentication_request(cls, ecp, idp_entity_id, destination,
                                 nameid_format=saml.NAMEID_FORMAT_PERSISTENT)
 
     try:
+        try:
+            headers = {config.USERNAME_HEADER: ecp.user}
+        except AttributeError:
+            headers = None
+
+        print >> sys.stderr, "Headers: %s" % headers
+            
         # send the request and receive the response
-        response = ecp.phase2(request, acsu, idp_entity_id)
+        response = ecp.phase2(request, acsu, idp_entity_id, headers)
     except Exception, exc:
         exception_trace("soap", exc, log)
         if log:
@@ -212,13 +224,12 @@ def post_auth(authData):
     _srv = "%s:%s" % (serviceName, hostName)
     log(radiusd.L_DBG, "Working on behalf of: %s" % _srv)
 
-
     # Find the endpoint to use
     sso_service = CLIENT.config.single_sign_on_services(config.IDP_ENTITYID,
                                                         saml2.BINDING_PAOS)
     if not sso_service:
         log(radiusd.L_DBG,
-            "Couldn't find an single sign on endpoint for: %s" % (
+            "Couldn't find an single-sign-on endpoint for: %s" % (
                 config.IDP_ENTITYID,))
         return radiusd.RLM_MODULE_FAIL
 
@@ -226,7 +237,7 @@ def post_auth(authData):
 
     log(radiusd.L_DBG, "location: %s" % location)
 
-    ECP.http.clear_credentials()
+    #ECP.http.clear_credentials()
     ECP.user = userName
     log(radiusd.L_DBG, "Login using user:%s password:'%s'" % (ECP.user,
                                                              ECP.passwd))
