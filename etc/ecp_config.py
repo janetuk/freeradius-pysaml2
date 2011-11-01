@@ -21,3 +21,13 @@ PASSWD = ""
 # header. This defines the header name
 
 USERNAME_HEADER = "X-Moonshot-Username"
+
+# is the path of a file containing root CA certificates for SSL
+# server certificate validation.
+
+CA_CERTS = ""
+
+# If disable_ssl_certificate_validation is true, SSL cert validation will
+# not be performed.
+
+DISABLE_SSL_CERTIFICATE_VALIDATION = True

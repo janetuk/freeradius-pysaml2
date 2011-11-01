@@ -140,10 +140,11 @@ def authentication_request(cls, ecp, idp_entity_id, destination,
         except AttributeError:
             headers = None
 
-        print >> sys.stderr, "Headers: %s" % headers
+        print >> sys.stderr, "Headers: {0:>s}".format(headers)
             
         # send the request and receive the response
-        response = ecp.phase2(request, acsu, idp_entity_id, headers)
+        response = ecp.phase2(request, acsu, idp_entity_id, headers,
+                              destination)
     except Exception, exc:
         exception_trace("soap", exc, log)
         if log:
@@ -270,7 +271,7 @@ def post_auth(authData):
     attr = "SAML-AAA-Assertion"
     #attr = "UKERNA-Attr-%d" % 132
     #attr = "Vendor-%d-Attr-%d" % (25622, 132)
-    restup = (tuple([(attr, x) for x in eq_len_parts("%s" % _assertion, 248)]))
+    restup = (tuple([(attr, x) for x in eq_len_parts("%s" % _assertion, 247)]))
 
     return radiusd.RLM_MODULE_UPDATED, restup, None
 

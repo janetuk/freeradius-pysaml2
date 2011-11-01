@@ -14,7 +14,7 @@ def read(fname):
 
 setup(# Distribution meta-data
     name = "freeradius_pysaml2",
-    version = "0.0.5",
+    version = "0.0.6",
     description = "FreeRadius python modules to be used in Moonshot",
     author = "Roland Hedberg",
     author_email = "roland.hedberg@adm.umu.se",
